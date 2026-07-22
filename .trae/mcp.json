@@ -31,6 +31,12 @@
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-memory"],
       "env": {}
+    },
+    "markitdown": {
+      "description": "将 PDF、Office、图片、音频等 29+ 格式转换为 Markdown",
+      "command": "uvx",
+      "args": ["markitdown-mcp"],
+      "env": {}
     }
   }
 }

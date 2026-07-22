@@ -1,0 +1,36 @@
+{
+  "mcpServers": {
+    "github": {
+      "description": "管理 GitHub 仓库、Issue、PR 和 Workflow",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "<YOUR_GITHUB_PAT>"
+      }
+    },
+    "playwright": {
+      "description": "浏览器自动化：测试、截屏、数据抓取",
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp"],
+      "env": {}
+    },
+    "context7": {
+      "description": "实时获取最新官方文档上下文",
+      "command": "npx",
+      "args": ["-y", "@upstash/context7"],
+      "env": {}
+    },
+    "sequential-thinking": {
+      "description": "结构化思维推理，辅助复杂问题拆解",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "env": {}
+    },
+    "memory": {
+      "description": "跨会话知识图谱持久化记忆",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "env": {}
+    }
+  }
+}

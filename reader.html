@@ -1,0 +1,1638 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>起点书坊 - 极致阅读体验</title>
+<style>
+/* ===== Reset & Base ===== */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  background: #f5f0eb;
+  color: #3a3a3a;
+  transition: background .3s, color .3s;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ===== Theme Variables ===== */
+:root {
+  --bg-page: #f5f0eb;
+  --bg-header: #ffffff;
+  --bg-content: #faf8f5;
+  --bg-card: #ffffff;
+  --bg-hover: #f0ebe5;
+  --bg-comment: #fffdf7;
+  --text-primary: #3a3a3a;
+  --text-secondary: #8a8a8a;
+  --text-content: #2c2c2c;
+  --text-link: #e67e22;
+  --border-color: #e8e0d8;
+  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  --accent: #e67e22;
+  --accent-light: #fdf2e9;
+  --progress-bg: #e8e0d8;
+  --progress-fill: #e67e22;
+  --comment-bubble: #e67e22;
+  --scrollbar: #d5ccc4;
+}
+
+body[data-theme="night"] {
+  --bg-page: #1a1a1e;
+  --bg-header: #222226;
+  --bg-content: #1e1e22;
+  --bg-card: #2a2a2e;
+  --bg-hover: #333336;
+  --bg-comment: #2a2a2e;
+  --text-primary: #c8c8c8;
+  --text-secondary: #888888;
+  --text-content: #d0d0d0;
+  --text-link: #e8a84c;
+  --border-color: #3a3a3e;
+  --shadow: 0 2px 12px rgba(0,0,0,0.3);
+  --accent: #e8a84c;
+  --accent-light: #2a2a2e;
+  --progress-bg: #3a3a3e;
+  --progress-fill: #e8a84c;
+  --comment-bubble: #e8a84c;
+  --scrollbar: #444448;
+}
+
+body[data-theme="eye"] {
+  --bg-page: #c7edcc;
+  --bg-header: #d4f0d8;
+  --bg-content: #dbf4df;
+  --bg-card: #e6f7e9;
+  --bg-hover: #c7edcc;
+  --bg-comment: #e6f7e9;
+  --text-primary: #2d4a2d;
+  --text-secondary: #6a8f6a;
+  --text-content: #2d4a2d;
+  --text-link: #4a8c5c;
+  --border-color: #b0d8b5;
+  --shadow: 0 2px 12px rgba(0,0,0,0.06);
+  --accent: #4a8c5c;
+  --accent-light: #d4f0d8;
+  --progress-bg: #b0d8b5;
+  --progress-fill: #4a8c5c;
+  --comment-bubble: #4a8c5c;
+  --scrollbar: #a0cca5;
+}
+
+body[data-theme="parchment"] {
+  --bg-page: #e8dcc8;
+  --bg-header: #f0e6d4;
+  --bg-content: #f5ede0;
+  --bg-card: #faf3e8;
+  --bg-hover: #ede0ce;
+  --bg-comment: #faf3e8;
+  --text-primary: #4a3520;
+  --text-secondary: #8a7050;
+  --text-content: #3d2d1a;
+  --text-link: #a07030;
+  --border-color: #d4c4a8;
+  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  --accent: #a07030;
+  --accent-light: #f0e6d4;
+  --progress-bg: #d4c4a8;
+  --progress-fill: #a07030;
+  --comment-bubble: #a07030;
+  --scrollbar: #c4b498;
+}
+
+/* ===== Header ===== */
+.reader-header {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: 52px;
+  background: var(--bg-header);
+  border-bottom: 1px solid var(--border-color);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px;
+  box-shadow: var(--shadow);
+  transition: background .3s, border-color .3s;
+}
+.header-left, .header-right { display: flex; align-items: center; gap: 12px; }
+.header-btn {
+  background: none; border: none; color: var(--text-primary);
+  font-size: 20px; cursor: pointer; padding: 6px 8px;
+  border-radius: 6px; transition: background .2s;
+  display: flex; align-items: center; gap: 4px;
+}
+.header-btn:hover { background: var(--bg-hover); }
+.header-btn span { font-size: 14px; }
+.book-title-header {
+  font-size: 15px; font-weight: 600; color: var(--text-primary);
+  max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* ===== Main Content ===== */
+.reader-main {
+  position: fixed; top: 52px; left: 0; right: 0; bottom: 0;
+  overflow-y: auto; overflow-x: hidden;
+  background: var(--bg-content);
+  transition: background .3s;
+  scroll-behavior: smooth;
+}
+.reader-main::-webkit-scrollbar { width: 4px; }
+.reader-main::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 2px; }
+
+.reader-inner {
+  max-width: 720px; margin: 0 auto; padding: 30px 24px 100px;
+}
+
+/* ===== Chapter Title ===== */
+.chapter-title {
+  text-align: center; font-size: 22px; font-weight: 700;
+  color: var(--text-primary); margin-bottom: 28px;
+  padding-bottom: 20px; border-bottom: 1px solid var(--border-color);
+  line-height: 1.5;
+}
+
+/* ===== Novel Content ===== */
+.novel-content {
+  font-size: 18px; line-height: 2; color: var(--text-content);
+  letter-spacing: 0.5px; text-align: justify;
+  transition: font-size .2s, line-height .2s, color .3s;
+}
+.novel-content .paragraph {
+  position: relative; margin-bottom: 0; padding: 4px 0;
+  text-indent: 2em; cursor: pointer;
+  transition: background .2s;
+  border-radius: 4px; padding: 4px 8px; margin: 0 -8px;
+}
+.novel-content .paragraph:hover {
+  background: var(--bg-hover);
+}
+.novel-content .paragraph .comment-trigger {
+  display: none; position: absolute; left: -8px; top: 50%;
+  transform: translateY(-50%);
+  width: 4px; height: 60%; background: var(--comment-bubble);
+  border-radius: 2px; opacity: 0.5;
+}
+.novel-content .paragraph:hover .comment-trigger { display: block; }
+.novel-content .paragraph.has-notes::after {
+  content: attr(data-note-count); position: absolute;
+  right: -8px; top: 4px;
+  background: var(--comment-bubble); color: #fff;
+  font-size: 11px; min-width: 18px; height: 18px;
+  border-radius: 9px; display: flex; align-items: center;
+  justify-content: center; padding: 0 5px;
+  font-style: normal; text-indent: 0; line-height: 1;
+}
+.novel-content .paragraph.note-highlight {
+  background: var(--accent-light);
+}
+.novel-content .paragraph.note-highlight:hover {
+  background: var(--accent-light);
+}
+
+/* ===== Comment Bubble (本章说) ===== */
+.comment-bubble-wrap {
+  position: fixed; bottom: 80px; right: 20px; z-index: 50;
+  display: flex; flex-direction: column; align-items: flex-end;
+  gap: 8px; pointer-events: none;
+}
+.comment-bubble-item {
+  pointer-events: auto;
+  background: var(--bg-card); border: 1px solid var(--border-color);
+  border-radius: 16px; padding: 8px 14px; max-width: 260px;
+  font-size: 13px; color: var(--text-primary);
+  box-shadow: var(--shadow);
+  animation: floatUp 4s ease-out forwards;
+  opacity: 0; transform: translateY(20px);
+}
+@keyframes floatUp {
+  0% { opacity: 0; transform: translateY(20px) scale(0.9); }
+  10% { opacity: 1; transform: translateY(0) scale(1); }
+  70% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-30px) scale(0.9); }
+}
+.comment-bubble-item .cb-user { font-size: 11px; color: var(--text-secondary); margin-bottom: 2px; }
+.comment-bubble-item .cb-text { line-height: 1.4; }
+
+/* ===== Bottom Bar ===== */
+.reader-bottom {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+  background: var(--bg-header);
+  border-top: 1px solid var(--border-color);
+  transition: background .3s, border-color .3s;
+}
+.progress-track {
+  height: 3px; background: var(--progress-bg); cursor: pointer; position: relative;
+}
+.progress-fill {
+  height: 100%; background: var(--progress-fill); width: 0%;
+  transition: width .3s; border-radius: 0 2px 2px 0;
+}
+.bottom-actions {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 16px; height: 52px;
+}
+.bottom-actions .nav-group { display: flex; align-items: center; gap: 4px; }
+.bottom-btn {
+  background: none; border: none; color: var(--text-primary);
+  font-size: 14px; cursor: pointer; padding: 8px 14px;
+  border-radius: 6px; transition: all .2s;
+  display: flex; align-items: center; gap: 4px;
+  white-space: nowrap;
+}
+.bottom-btn:hover { background: var(--bg-hover); }
+.bottom-btn:active { transform: scale(0.96); }
+.bottom-btn .icon { font-size: 18px; }
+.bottom-btn.primary { color: var(--accent); font-weight: 600; }
+.chapter-info { font-size: 13px; color: var(--text-secondary); }
+
+/* ===== Side Panel (TOC / Settings) ===== */
+.side-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4); z-index: 200;
+  opacity: 0; pointer-events: none; transition: opacity .3s;
+}
+.side-overlay.active { opacity: 1; pointer-events: auto; }
+
+.side-panel {
+  position: fixed; top: 0; bottom: 0; width: 320px; max-width: 85vw;
+  background: var(--bg-card); z-index: 201;
+  transition: transform .3s ease;
+  display: flex; flex-direction: column;
+  box-shadow: 2px 0 20px rgba(0,0,0,0.15);
+}
+.side-panel.left { left: 0; transform: translateX(-100%); }
+.side-panel.right { right: 0; transform: translateX(100%); }
+.side-panel.active { transform: translateX(0); }
+
+.panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+.panel-header h2 { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+.panel-close {
+  background: none; border: none; color: var(--text-secondary);
+  font-size: 22px; cursor: pointer; padding: 4px;
+  border-radius: 4px; transition: background .2s;
+}
+.panel-close:hover { background: var(--bg-hover); }
+
+.panel-body {
+  flex: 1; overflow-y: auto; padding: 12px 0;
+}
+.panel-body::-webkit-scrollbar { width: 3px; }
+.panel-body::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 2px; }
+
+/* ===== TOC Items ===== */
+.toc-item {
+  display: flex; align-items: center; padding: 12px 20px;
+  cursor: pointer; transition: background .2s;
+  border-left: 3px solid transparent;
+  gap: 10px;
+}
+.toc-item:hover { background: var(--bg-hover); }
+.toc-item.active {
+  background: var(--accent-light);
+  border-left-color: var(--accent);
+}
+.toc-item .toc-num {
+  font-size: 12px; color: var(--text-secondary); min-width: 28px;
+  text-align: right; font-feature-settings: "tnum";
+}
+.toc-item .toc-name {
+  font-size: 14px; color: var(--text-primary); flex: 1;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.toc-item .toc-status {
+  font-size: 11px; color: var(--accent);
+}
+.toc-item .toc-check { color: var(--accent); font-size: 14px; }
+
+/* ===== Settings Panel ===== */
+.settings-section {
+  padding: 16px 20px; border-bottom: 1px solid var(--border-color);
+}
+.settings-section:last-child { border-bottom: none; }
+.settings-label {
+  font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;
+  font-weight: 500;
+}
+.theme-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+}
+.theme-option {
+  text-align: center; cursor: pointer; padding: 8px 4px;
+  border-radius: 8px; transition: all .2s; border: 2px solid transparent;
+}
+.theme-option:hover { background: var(--bg-hover); }
+.theme-option.active { border-color: var(--accent); background: var(--accent-light); }
+.theme-preview {
+  width: 36px; height: 36px; border-radius: 50%; margin: 0 auto 6px;
+  border: 2px solid var(--border-color); display: flex; align-items: center;
+  justify-content: center; font-size: 16px;
+}
+.theme-option .theme-name { font-size: 12px; color: var(--text-primary); }
+.theme-preview.default { background: #faf8f5; }
+.theme-preview.night { background: #1e1e22; color: #c8c8c8; }
+.theme-preview.eye { background: #dbf4df; }
+.theme-preview.parchment { background: #f5ede0; }
+
+.font-size-control {
+  display: flex; align-items: center; gap: 12px;
+}
+.font-size-btn {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--bg-hover); border: 1px solid var(--border-color);
+  color: var(--text-primary); font-size: 18px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s; flex-shrink: 0;
+}
+.font-size-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+.font-size-display {
+  flex: 1; text-align: center; font-size: 14px; color: var(--text-primary);
+}
+.font-size-slider {
+  flex: 3; -webkit-appearance: none; height: 4px;
+  background: var(--progress-bg); border-radius: 2px; outline: none;
+}
+.font-size-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 18px; height: 18px;
+  border-radius: 50%; background: var(--accent); cursor: pointer;
+  border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+
+.line-height-control {
+  display: flex; align-items: center; gap: 12px;
+}
+.lh-btn {
+  padding: 4px 16px; border-radius: 16px; border: 1px solid var(--border-color);
+  background: transparent; color: var(--text-primary); font-size: 13px;
+  cursor: pointer; transition: all .2s;
+}
+.lh-btn:hover { border-color: var(--accent); }
+.lh-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+.font-family-control { display: flex; gap: 8px; flex-wrap: wrap; }
+.ff-btn {
+  padding: 6px 14px; border-radius: 16px; border: 1px solid var(--border-color);
+  background: transparent; color: var(--text-primary); font-size: 13px;
+  cursor: pointer; transition: all .2s;
+}
+.ff-btn:hover { border-color: var(--accent); }
+.ff-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* ===== Comment Modal (本章说弹窗) ===== */
+.comment-modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5); z-index: 300;
+  display: none; align-items: flex-end; justify-content: center;
+}
+.comment-modal-overlay.active { display: flex; }
+.comment-modal {
+  width: 100%; max-width: 500px; max-height: 70vh;
+  background: var(--bg-card); border-radius: 16px 16px 0 0;
+  display: flex; flex-direction: column;
+  animation: slideUp .3s ease;
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.comment-modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; border-bottom: 1px solid var(--border-color);
+}
+.comment-modal-header h3 { font-size: 16px; color: var(--text-primary); }
+.comment-modal-close {
+  background: none; border: none; color: var(--text-secondary);
+  font-size: 22px; cursor: pointer;
+}
+.comment-modal-body {
+  flex: 1; overflow-y: auto; padding: 16px 20px;
+}
+.comment-item {
+  padding: 12px 0; border-bottom: 1px solid var(--border-color);
+}
+.comment-item:last-child { border-bottom: none; }
+.comment-user {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+}
+.comment-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--accent); color: #fff; font-size: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600;
+}
+.comment-name { font-size: 13px; color: var(--text-primary); font-weight: 500; }
+.comment-time { font-size: 11px; color: var(--text-secondary); }
+.comment-text { font-size: 14px; color: var(--text-content); line-height: 1.6; }
+.comment-likes { font-size: 12px; color: var(--text-secondary); margin-top: 6px; display: flex; align-items: center; gap: 4px; }
+.comment-input-area {
+  display: flex; padding: 12px 20px; border-top: 1px solid var(--border-color);
+  gap: 10px; background: var(--bg-card);
+}
+.comment-input-area input {
+  flex: 1; padding: 10px 14px; border-radius: 20px;
+  border: 1px solid var(--border-color); background: var(--bg-hover);
+  color: var(--text-primary); font-size: 14px; outline: none;
+  transition: border-color .2s;
+}
+.comment-input-area input:focus { border-color: var(--accent); }
+.comment-input-area input::placeholder { color: var(--text-secondary); }
+.comment-input-area button {
+  padding: 8px 20px; border-radius: 20px; border: none;
+  background: var(--accent); color: #fff; font-size: 14px;
+  cursor: pointer; font-weight: 500; transition: opacity .2s;
+  white-space: nowrap;
+}
+.comment-input-area button:hover { opacity: 0.85; }
+
+/* ===== Bookshelf ===== */
+.bookshelf-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+  padding: 20px;
+}
+.bookshelf-item {
+  text-align: center; cursor: pointer; transition: transform .2s;
+}
+.bookshelf-item:hover { transform: translateY(-4px); }
+.bookshelf-cover {
+  width: 100%; aspect-ratio: 3/4;
+  background: linear-gradient(135deg, var(--accent), #c0392b);
+  border-radius: 8px; display: flex; align-items: center;
+  justify-content: center; font-size: 28px; color: #fff;
+  font-weight: 700; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  margin-bottom: 8px;
+}
+.bookshelf-cover.gold { background: linear-gradient(135deg, #d4a44a, #8a6a2a); }
+.bookshelf-cover.blue { background: linear-gradient(135deg, #4a8fc4, #2a5f8a); }
+.bookshelf-cover.green { background: linear-gradient(135deg, #4a9c6a, #2a6a4a); }
+.bookshelf-cover.purple { background: linear-gradient(135deg, #8a6ac4, #5a3a8a); }
+.bookshelf-cover.red { background: linear-gradient(135deg, #c44a4a, #8a2a2a); }
+.bookshelf-cover.teal { background: linear-gradient(135deg, #4a9c9c, #2a6a6a); }
+.bookshelf-name {
+  font-size: 13px; color: var(--text-primary); font-weight: 500;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.bookshelf-author {
+  font-size: 11px; color: var(--text-secondary); margin-top: 2px;
+}
+
+/* ===== Floating Action ===== */
+.fab-group {
+  position: fixed; right: 16px; bottom: 72px; z-index: 50;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.fab-btn {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--bg-card); border: 1px solid var(--border-color);
+  color: var(--text-primary); font-size: 20px; cursor: pointer;
+  box-shadow: var(--shadow); display: flex; align-items: center;
+  justify-content: center; transition: all .2s;
+}
+.fab-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+.fab-btn:active { transform: scale(0.92); }
+
+/* ===== Toast ===== */
+.toast {
+  position: fixed; top: 64px; left: 50%; transform: translateX(-50%);
+  z-index: 999; background: var(--text-primary); color: var(--bg-page);
+  padding: 10px 24px; border-radius: 20px; font-size: 14px;
+  opacity: 0; transition: opacity .3s, transform .3s;
+  pointer-events: none; white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ===== Chapter End Notice ===== */
+.chapter-end {
+  text-align: center; padding: 40px 0 20px; margin-top: 30px;
+  border-top: 1px solid var(--border-color);
+}
+.chapter-end .end-label {
+  font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;
+}
+.chapter-end .end-actions {
+  display: flex; justify-content: center; gap: 16px;
+}
+.chapter-end .end-btn {
+  padding: 10px 28px; border-radius: 20px; border: 1px solid var(--border-color);
+  background: var(--bg-card); color: var(--text-primary); font-size: 14px;
+  cursor: pointer; transition: all .2s;
+}
+.chapter-end .end-btn:hover { border-color: var(--accent); color: var(--accent); }
+.chapter-end .end-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.chapter-end .end-btn.primary:hover { opacity: 0.85; }
+
+/* ===== Responsive ===== */
+@media (max-width: 600px) {
+  .reader-inner { padding: 20px 16px 80px; }
+  .chapter-title { font-size: 19px; }
+  .novel-content { font-size: 16px; }
+  .side-panel { width: 280px; }
+  .header-btn span { display: none; }
+  .bottom-btn { padding: 8px 10px; font-size: 13px; }
+  .bottom-btn .label { display: none; }
+  .theme-grid { grid-template-columns: repeat(2, 1fr); }
+  .bookshelf-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ===== Loading ===== */
+.loading-screen {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--bg-page); z-index: 9999;
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; transition: opacity .5s;
+}
+.loading-screen.hidden { opacity: 0; pointer-events: none; }
+.loading-spinner {
+  width: 40px; height: 40px; border: 3px solid var(--border-color);
+  border-top-color: var(--accent); border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { margin-top: 16px; color: var(--text-secondary); font-size: 14px; }
+</style>
+</head>
+<body>
+
+<!-- Loading Screen -->
+<div class="loading-screen" id="loadingScreen">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">起点书坊 · 正在加载...</div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Header -->
+<header class="reader-header">
+  <div class="header-left">
+    <button class="header-btn" onclick="toggleBookshelf()" title="书架">
+      <span>📚</span><span>书架</span>
+    </button>
+    <button class="header-btn" onclick="toggleTOC()" title="目录">
+      <span>📋</span><span>目录</span>
+    </button>
+  </div>
+  <div class="book-title-header" id="headerBookTitle">大道朝天</div>
+  <div class="header-right">
+    <button class="header-btn" onclick="toggleSettings()" title="设置">
+      <span>⚙️</span><span>设置</span>
+    </button>
+    <button class="header-btn" onclick="toggleAutoScroll()" id="autoScrollBtn" title="自动滚动">
+      <span>🔽</span><span>自动</span>
+    </button>
+  </div>
+</header>
+
+<!-- Main Reading Area -->
+<main class="reader-main" id="readerMain">
+  <div class="reader-inner" id="readerInner">
+    <div class="chapter-title" id="chapterTitle">第一章 人间无雪</div>
+    <div class="novel-content" id="novelContent"></div>
+    <div class="chapter-end" id="chapterEnd" style="display:none;">
+      <div class="end-label">—— 本章完 ——</div>
+      <div class="end-actions">
+        <button class="end-btn" onclick="prevChapter()">上一章</button>
+        <button class="end-btn primary" onclick="nextChapter()">下一章</button>
+        <button class="end-btn" onclick="showToast('已加入书架')">加入书架</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Floating Comment Bubbles -->
+<div class="comment-bubble-wrap" id="commentBubbleWrap"></div>
+
+<!-- Bottom Bar -->
+<div class="reader-bottom">
+  <div class="progress-track" id="progressTrack" onclick="seekProgress(event)">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+  <div class="bottom-actions">
+    <div class="nav-group">
+      <button class="bottom-btn" onclick="prevChapter()">
+        <span class="icon">◀</span><span class="label">上一章</span>
+      </button>
+    </div>
+    <div class="chapter-info">
+      <span id="chapterProgress">1/20</span>
+    </div>
+    <div class="nav-group">
+      <button class="bottom-btn" onclick="toggleComments()">
+        <span class="icon">💬</span><span class="label">本章说</span>
+      </button>
+      <button class="bottom-btn primary" onclick="nextChapter()">
+        <span class="label">下一章</span><span class="icon">▶</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Overlay -->
+<div class="side-overlay" id="sideOverlay" onclick="closeAllPanels()"></div>
+
+<!-- TOC Panel (Left) -->
+<div class="side-panel left" id="tocPanel">
+  <div class="panel-header">
+    <h2>📋 目录</h2>
+    <button class="panel-close" onclick="closeAllPanels()">✕</button>
+  </div>
+  <div class="panel-body" id="tocBody"></div>
+</div>
+
+<!-- Settings Panel (Right) -->
+<div class="side-panel right" id="settingsPanel">
+  <div class="panel-header">
+    <h2>⚙️ 阅读设置</h2>
+    <button class="panel-close" onclick="closeAllPanels()">✕</button>
+  </div>
+  <div class="panel-body" id="settingsBody">
+    <!-- Theme -->
+    <div class="settings-section">
+      <div class="settings-label">阅读主题</div>
+      <div class="theme-grid" id="themeGrid">
+        <div class="theme-option active" data-theme="default" onclick="setTheme('default')">
+          <div class="theme-preview default">☀</div>
+          <div class="theme-name">默认</div>
+        </div>
+        <div class="theme-option" data-theme="night" onclick="setTheme('night')">
+          <div class="theme-preview night">🌙</div>
+          <div class="theme-name">夜间</div>
+        </div>
+        <div class="theme-option" data-theme="eye" onclick="setTheme('eye')">
+          <div class="theme-preview eye">🌿</div>
+          <div class="theme-name">护眼</div>
+        </div>
+        <div class="theme-option" data-theme="parchment" onclick="setTheme('parchment')">
+          <div class="theme-preview parchment">📜</div>
+          <div class="theme-name">羊皮纸</div>
+        </div>
+      </div>
+    </div>
+    <!-- Font Size -->
+    <div class="settings-section">
+      <div class="settings-label">字体大小</div>
+      <div class="font-size-control">
+        <button class="font-size-btn" onclick="changeFontSize(-2)">A−</button>
+        <div class="font-size-display" id="fontSizeDisplay">18px</div>
+        <input type="range" class="font-size-slider" id="fontSizeSlider"
+               min="12" max="32" value="18" oninput="setFontSize(this.value)">
+        <button class="font-size-btn" onclick="changeFontSize(2)">A+</button>
+      </div>
+    </div>
+    <!-- Line Height -->
+    <div class="settings-section">
+      <div class="settings-label">行间距</div>
+      <div class="line-height-control" id="lineHeightControl">
+        <button class="lh-btn" data-lh="1.6" onclick="setLineHeight(1.6)">紧凑</button>
+        <button class="lh-btn active" data-lh="2.0" onclick="setLineHeight(2.0)">适中</button>
+        <button class="lh-btn" data-lh="2.4" onclick="setLineHeight(2.4)">宽松</button>
+        <button class="lh-btn" data-lh="2.8" onclick="setLineHeight(2.8)">极宽</button>
+      </div>
+    </div>
+    <!-- Font Family -->
+    <div class="settings-section">
+      <div class="settings-label">字体</div>
+      <div class="font-family-control" id="fontFamilyControl">
+        <button class="ff-btn active" data-ff="default" onclick="setFontFamily('default')">默认</button>
+        <button class="ff-btn" data-ff="song" onclick="setFontFamily('song')">宋体</button>
+        <button class="ff-btn" data-ff="kai" onclick="setFontFamily('kai')">楷体</button>
+        <button class="ff-btn" data-ff="hei" onclick="setFontFamily('hei')">黑体</button>
+      </div>
+    </div>
+    <!-- About -->
+    <div class="settings-section" style="border:none;">
+      <div class="settings-label">关于</div>
+      <div style="font-size:13px;color:var(--text-secondary);line-height:1.8;">
+        <p>起点书坊 v2.0 · 极致阅读体验</p>
+        <p style="margin-top:4px;">完全模拟起点中文网阅读界面</p>
+        <p style="margin-top:4px;">支持 本章说 · 主题切换 · 自动滚动</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bookshelf Panel (Left - same as TOC position, separate) -->
+<div class="side-panel left" id="bookshelfPanel" style="z-index:202;">
+  <div class="panel-header">
+    <h2>📚 我的书架</h2>
+    <button class="panel-close" onclick="closeAllPanels()">✕</button>
+  </div>
+  <div class="panel-body">
+    <div class="bookshelf-grid" id="bookshelfGrid"></div>
+  </div>
+</div>
+
+<!-- Comment Modal (本章说) -->
+<div class="comment-modal-overlay" id="commentModal">
+  <div class="comment-modal">
+    <div class="comment-modal-header">
+      <h3>💬 本章说 <span style="font-size:13px;color:var(--text-secondary);font-weight:400;" id="commentCount">(0条)</span></h3>
+      <button class="comment-modal-close" onclick="closeCommentModal()">✕</button>
+    </div>
+    <div class="comment-modal-body" id="commentModalBody">
+      <div style="text-align:center;padding:40px 0;color:var(--text-secondary);">
+        <div style="font-size:40px;margin-bottom:12px;">💬</div>
+        <p>暂无评论，来说点什么吧~</p>
+      </div>
+    </div>
+    <div class="comment-input-area">
+      <input type="text" id="commentInput" placeholder="写下你的想法..." maxlength="200">
+      <button onclick="submitComment()">发表</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+
+const BOOKS = [
+  { id: 0, name: '大道朝天', author: '猫腻', emoji: '🗡️', cover: 'red' },
+  { id: 1, name: '诡秘之主', author: '爱潜水的乌贼', emoji: '🕯️', cover: 'purple' },
+  { id: 2, name: '全职高手', author: '蝴蝶蓝', emoji: '🎮', cover: 'blue' },
+  { id: 3, name: '斗破苍穹', author: '天蚕土豆', emoji: '🔥', cover: 'gold' },
+  { id: 4, name: '大奉打更人', author: '卖报小郎君', emoji: '🏮', cover: 'green' },
+  { id: 5, name: '庆余年', author: '猫腻', emoji: '📜', cover: 'teal' },
+];
+
+// Simulated novel chapters (sample content for each chapter)
+const CHAPTERS = [
+  {
+    title: '第一章 人间无雪',
+    content: [
+      '青山沉默，大雪纷飞。',
+      '天地间一片苍茫，唯有远处那座孤零零的山峰，在风雪中若隐若现。',
+      '井九站在山道上，看着眼前的白茫茫一片，忽然想起很多年前，也有人曾这样站在雪地里，看着远方的天空发呆。',
+      '那时候，他还很年轻，还有很多的梦想和期待。',
+      '可如今，他站在这里，心中却已经没有了当年的波澜。',
+      '"走吧。"身后传来一个声音，平静而温和，"再不走，雪就要封山了。"',
+      '井九没有回头，只是轻轻点了点头。',
+      '他迈开脚步，踩在积雪上，发出咯吱咯吱的声响。',
+      '每一步都在雪地上留下深深的脚印，但很快又被新落的雪花覆盖。',
+      '就像那些曾经发生过的事情，虽然真实存在过，却终究会被时间掩埋。',
+      '山道两旁的古树，枝头挂满了冰凌，在微弱的天光下闪烁着晶莹的光芒。',
+      '偶尔有积雪从枝头坠落，发出扑簌的声响，在寂静的山林中格外清晰。',
+      '"听说这次去朝天宗，会有很多年轻弟子。"身后的声音又响起来，"你就不期待吗？"',
+      '井九终于停下脚步，微微侧头。',
+      '"有什么好期待的？"他的声音很淡，像是这寒风中的一缕轻烟。',
+      '"新的地方，新的人，新的开始。"身后的人笑了笑，"总比一直活在过去的阴影里强。"',
+      '井九沉默了片刻，然后继续向前走去。',
+      '是啊，新的开始。',
+      '可一个人，真的能重新开始吗？',
+      '那些刻在骨子里的记忆，那些融入血液中的习惯，那些如梦魇般缠绕的过往，真的能说放下就放下吗？',
+      '他不知道答案。',
+      '但他知道，自己必须向前走。',
+      '因为停下来，就是死亡。',
+      '风雪越来越大，前方的路越来越模糊。',
+      '井九眯起眼睛，隐约看到前方有一座巨大的山门，矗立在风雪之中。',
+      '那应该就是朝天宗的山门了。',
+      '他深吸一口气，冰冷的空气灌入肺腑，让他的精神为之一振。',
+      '不管前路如何，既然来了，那就走下去吧。',
+      '他这样想着，脚步不自觉地加快了几分。',
+      '身后的人似乎察觉到了他的变化，嘴角微微扬起。',
+      '这才是他认识的井九。',
+      '不管遇到什么困难，都不会真正被打倒。',
+      '就像当年一样。',
+      '山门越来越近，近到可以看清门上雕刻的复杂纹路。',
+      '那些纹路在风雪中依然清晰可见，仿佛蕴含着某种神秘的力量。',
+      '井九在门前停下，抬手轻轻抚摸着那些纹路。',
+      '指尖传来冰凉的触感，让他心中微微一颤。',
+      '这个宗门，会不会就是他的归宿？',
+      '他不知道。',
+      '但他知道，自己已经做出了选择。',
+      '剩下的，就交给时间吧。',
+      '他推开了那扇沉重的山门。',
+      '门轴发出沉闷的声响，在风雪中传出去很远很远。',
+      '门后，是一个崭新的世界。',
+    ],
+  },
+  {
+    title: '第二章 朝天宗',
+    content: [
+      '山门之后，是一条宽阔的青石大道。',
+      '大道两旁种满了参天古树，虽然已是寒冬，但那些松柏依然苍翠欲滴。',
+      '井九走在大道上，脚下的青石被岁月打磨得光滑如镜，倒映着天空的云影。',
+      '"朝天宗建于三千年前，是东域最大的修仙宗门之一。"身后的人介绍道，"宗内弟子过万，高手如云。"',
+      '井九默默听着，目光在四周扫视。',
+      '远处，可以看到鳞次栉比的宫殿楼阁，错落有致地分布在山峦之间。',
+      '那些建筑在云雾中若隐若现，宛如仙境。',
+      '"宗主叫什么呢？"井九忽然开口问道。',
+      '"朝天宗主道号'青云'，据说已经活了三千年。"身后的人语气中带着一丝敬畏。',
+      '三千年的寿命，那是什么概念？',
+      '井九无法想象。',
+      '他只知道，普通人能活百年，就已经是长寿了。',
+      '"到了。"身后的人停下脚步。',
+      '井九抬头，看到前方是一座巨大的广场。',
+      '广场中央矗立着一座高塔，塔身通体雪白，在阳光下泛着淡淡的光晕。',
+      '广场上站着数百名年轻弟子，正在晨练。',
+      '他们的动作整齐划一，剑气纵横，声势浩大。',
+      '"这些都是新入门的弟子。"身后的人说，"从今天起，你也是他们中的一员了。"',
+      '井九默默看着那些年轻的面孔，心中忽然涌起一种奇妙的感觉。',
+      '他曾经以为，自己的修仙之路已经走到了尽头。',
+      '可现在，他站在这里，看着这些朝气蓬勃的年轻人，心中那团早已熄灭的火，似乎又燃起了一丝微弱的火焰。',
+      '"走吧，去报到。"身后的人拍了拍他的肩膀。',
+      '井九点了点头，迈步向广场走去。',
+      '阳光洒在他的身上，在雪地上拖出一道长长的影子。',
+      '那影子坚定不移地向前延伸，仿佛在告诉所有人——',
+      '这条路，他会一直走下去。',
+    ],
+  },
+  {
+    title: '第三章 旧识',
+    content: [
+      '报到处的长老是个白发苍苍的老者，看起来慈眉善目，但眼神中却透着精明。',
+      '他翻看着井九的资料，不时抬头打量他几眼。',
+      '"井九，散修出身，无门无派，修为……筑基中期。"长老念着，眉头微微皱起。',
+      '"以你的年纪，筑基中期，资质只能算中等。"',
+      '井九没有说话，只是平静地看着长老。',
+      '"不过嘛……"长老话锋一转，"你的实战经验倒是很丰富，这些年斩杀的妖物不少啊。"',
+      '"还好。"井九淡淡地说。',
+      '长老笑了笑，在名册上盖了个章。',
+      '"好了，从今天起，你就是朝天宗的外门弟子了。去东院报到吧。"',
+      '井九接过令牌，转身离开。',
+      '刚走出门口，迎面撞上一个人。',
+      '"哎哟！"那人被撞得后退了两步，捂着额头喊道，"谁啊，走路不长眼睛！"',
+      '井九抬头，看到一张年轻的、带着几分痞气的脸。',
+      '两人对视，都愣住了。',
+      '"井……井九？！"那人瞪大了眼睛，满脸不可置信。',
+      '井九也认出了对方，嘴角微微抽搐了一下。',
+      '"赵大宝。"',
+      '"我靠！真的是你！"赵大宝一把抱住井九，激动得差点跳起来，"你不是失踪了吗？我还以为你死了！"',
+      '井九被他勒得有些喘不过气，费力地推开他。',
+      '"你都没死，我怎么能死。"',
+      '"嘿，你这张嘴还是那么毒。"赵大宝笑嘻嘻地打量着他，"你怎么来朝天宗了？"',
+      '"修行。"井九简简单单地回了两个字。',
+      '"行啊你！"赵大宝拍了拍他的肩膀，眼中闪着兴奋的光，"咱哥俩又在一起了！走，我请你喝酒！"',
+      '井九本想拒绝，但看到赵大宝那真诚的眼神，终究还是点了点头。',
+      '也许，来到朝天宗，并不是一个错误的选择。',
+      '至少，在这里，他还能遇到故人。',
+    ],
+  },
+  {
+    title: '第四章 试炼',
+    content: [
+      '入宗第三天，新弟子试炼如期而至。',
+      '试炼地点在朝天宗后山的迷雾森林中，据说里面生活着各种妖兽，还有上古时期留下的阵法遗迹。',
+      '每个弟子需要独自穿越森林，在终点处拿到令牌，才算通过。',
+      '"记住，安全第一。"主考官站在高台上，声音洪亮，"遇到危险就捏碎手中的玉符，会有人去救你。"',
+      '井九低头看着手中的玉符，默默收好。',
+      '他不会用的。',
+      '从来都不会。',
+      '"开始！"随着主考官一声令下，数百名弟子如潮水般涌入森林。',
+      '井九没有急着冲，而是等大部分人进去后，才慢慢走进森林。',
+      '森林里雾气弥漫，能见度很低。',
+      '四周静得可怕，只有偶尔传来的几声鸟鸣，打破这诡异的寂静。',
+      '井九走得很慢，每一步都踩得很稳。',
+      '他的耳朵微微动着，捕捉着周围的一切声音。',
+      '沙沙——',
+      '左侧的灌木丛中传来轻微的声响。',
+      '井九停下脚步，右手已经按在了剑柄上。',
+      '一道黑影从灌木丛中猛地窜出，直扑他的面门！',
+      '井九眼神一凝，身体微微一侧，手中的剑如同闪电般出鞘！',
+      '剑光闪过，黑影被一分为二，落在地上。',
+      '是一只体型巨大的黑狼，身体还在抽搐。',
+      '井九收剑入鞘，看都没看地上的尸体，继续向前走去。',
+      '这样的战斗，对他来说，早已是家常便饭。',
+      '森林深处，雾气越来越浓。',
+      '不远处，传来几声惨叫，应该是有人遇到了危险。',
+      '井九脚步不停，但眉头却微微皱起。',
+      '这个试炼，似乎没那么简单。',
+    ],
+  },
+  {
+    title: '第五章 迷雾',
+    content: [
+      '走了大约半个时辰，井九发现了一个问题——他在绕圈子。',
+      '地上的那具黑狼尸体，已经是他第三次经过了。',
+      '"迷阵。"他蹲下身，用手指摸了摸地上的泥土，然后又看了看四周的树木。',
+      '这些树的排列方式，看似随意，实则暗合某种阵法。',
+      '井九闭上眼睛，让自己的神识缓缓扩散开来。',
+      '在他的感知中，周围的树木仿佛活了过来，形成了一张巨大的网络。',
+      '网络的中心，就在前方不远处。',
+      '他睁开眼，嘴角微微扬起。',
+      '原来如此。',
+      '他不再沿着道路走，而是直接朝着一个方向笔直地走去。',
+      '遇到灌木就劈开，遇到沟壑就跳过。',
+      '没过多久，眼前的雾气忽然消散，露出一片开阔地带。',
+      '中央是一座石台，台上放着一枚令牌。',
+      '石台旁边，坐着一个人。',
+      '那人看起来三十多岁，穿着一身青衣，正悠闲地喝着茶。',
+      '"能走到这里，不错。"那人放下茶杯，打量着井九，"你是这批弟子里，第一个到的。"',
+      '井九走到石台前，拿起令牌。',
+      '"这就算通过了吗？"',
+      '"当然。"那人笑了笑，"不过，我很好奇，你是怎么走出迷阵的？"',
+      '"很简单。"井九说，"万物皆有规律，找到规律，就不难了。"',
+      '那人眼中闪过一丝赞许。',
+      '"有意思。你叫什么名字？"',
+      '"井九。"',
+      '"井九……"那人喃喃念了一遍，然后说，"我叫青云。"',
+      '井九瞳孔微微一缩。',
+      '青云——朝天宗宗主！',
+    ],
+  },
+  {
+    title: '第六章 青云',
+    content: [
+      '"宗主怎么会在这里？"井九问道，语气依然平静，但心中已经掀起了波澜。',
+      '青云笑了笑，给自己倒了杯茶。',
+      '"每年新弟子试炼，我都会来看看，看看有没有值得注意的好苗子。"',
+      '"今年，你是我看中的第一个。"',
+      '井九沉默了片刻，然后说："多谢宗主抬爱。"',
+      '"不必客气。"青云摆摆手，"你能走出我的迷阵，说明你的悟性很高。但是……"',
+      '他话锋一转，目光变得深邃起来。',
+      '"你的心里，藏着很多事情。"',
+      '井九的心猛地一跳，但脸上依然不动声色。',
+      '"每个人都有过去。"他说。',
+      '"是的，每个人都有过去。"青云站起身，走到井九面前，"但过去是用来放下的，不是用来背负的。"',
+      '"你背得太重了，井九。"',
+      '井九抬起头，看着眼前这位活了三千年的老人。',
+      '他的目光深邃如海，仿佛能看穿一切。',
+      '"我……"井九张了张嘴，想要说什么，却发现自己说不出话来。',
+      '青云拍了拍他的肩膀，转身离开。',
+      '"记住，修行先修心。心若自在，万法皆通。"',
+      '他的身影渐渐消失在雾气中，只留下这句话在空中回荡。',
+      '井九站在原地，久久没有动。',
+      '修行先修心……',
+      '他喃喃念着这句话，眼中闪过一丝明悟。',
+    ],
+  },
+  {
+    title: '第七章 修炼',
+    content: [
+      '试炼结束后，井九正式开始了在朝天宗的修炼生活。',
+      '每天清晨，他都会和其他弟子一起，在广场上练习剑法。',
+      '不同的是，当其他人在休息时，他依然在练。',
+      '当其他人在睡觉时，他还在练。',
+      '"你疯了吗？"赵大宝看着满身伤痕的井九，忍不住说道，"用得着这么拼命吗？"',
+      '井九没有说话，只是继续挥剑。',
+      '他知道自己没有多少时间了。',
+      '体内的暗伤，随时都可能爆发。',
+      '他必须在那个时候来临之前，突破到更高的境界。',
+      '"你这样下去，身体会垮的。"赵大宝叹气。',
+      '"垮了再说。"井九淡淡地说。',
+      '赵大宝无奈地摇头，但也没有再劝。',
+      '他了解井九的脾气，一旦决定了什么事情，十头牛都拉不回来。',
+      '就这样，井九在朝天宗度过了最初的三个月。',
+      '三个月里，他的修为从筑基中期，突破到了筑基后期。',
+      '这样的速度，在整个朝天宗都是罕见的。',
+      '但井九并不满足。',
+      '他的目标，是金丹。',
+      '只有结成金丹，才能真正地掌握自己的命运。',
+    ],
+  },
+  {
+    title: '第八章 暗流',
+    content: [
+      '修炼的日子过得很快，转眼间，半年过去了。',
+      '这天，井九正在后山练剑，忽然听到一阵急促的脚步声。',
+      '赵大宝气喘吁吁地跑过来，脸色很难看。',
+      '"不好了，出大事了！"',
+      '井九收剑，看着他："怎么了？"',
+      '"执法堂的师兄们，在森林里发现了一具尸体。"赵大宝咽了口唾沫，"是内门弟子，被人杀死的。"',
+      '井九的眉头微微皱起。',
+      '"凶手呢？"',
+      '"没找到。"赵大宝摇头，"但执法堂的师兄在尸体旁边，发现了这个。"',
+      '他拿出一块碎布，递到井九面前。',
+      '井九接过碎布，脸色瞬间变了。',
+      '这块布料的颜色和质地，他再熟悉不过了。',
+      '那是他曾经待过的那个宗门，特有的服饰布料。',
+      '"他们说……"赵大宝犹豫了一下，还是说了出来，"他们说这可能是凶手的线索。"',
+      '井九握紧了手中的碎布，指节因为用力而发白。',
+      '那个宗门的人，怎么会出现在朝天宗？',
+      '他们想干什么？',
+      '他隐隐感觉到，有什么事情，正在暗中酝酿。',
+    ],
+  },
+  {
+    title: '第九章 往事',
+    content: [
+      '夜深了，井九独自坐在屋顶，看着满天星辰。',
+      '他的手中，依然握着那块碎布。',
+      '往事如潮水般涌上心头。',
+      '十年前，他还在那个宗门的时候，也曾像现在这样，坐在屋顶上看星星。',
+      '那时候，他身边还有一个人。',
+      '一个对他来说，很重要的人。',
+      '"你还记得吗？"他轻声说，"你说过，总有一天，要和我一起看遍天下风景。"',
+      '夜风吹过，带来一丝凉意。',
+      '"可是，你却先走了。"',
+      '他的声音有些哽咽，但很快又恢复了平静。',
+      '那块碎布，是他曾经送给她的一块衣料。',
+      '她亲手做成了一件衣服，一直穿着。',
+      '而现在，这块碎布出现在这里，像是一个信号。',
+      '她也在附近吗？',
+      '还是说，她遇到了什么麻烦？',
+      '井九站起身，目光坚定。',
+      '不管怎样，他都要找到她。',
+      '这一次，他不会再让她离开了。',
+    ],
+  },
+  {
+    title: '第十章 再会',
+    content: [
+      '第二天，井九找到了执法堂，要求查看那具尸体。',
+      '执法堂的师兄们虽然有些为难，但最终还是同意了。',
+      '尸体被白布覆盖着，放在冰窖中。',
+      '井九掀开白布，看到了一张陌生的脸。',
+      '不是她。',
+      '他松了一口气，但心中却更加疑惑了。',
+      '这个人是谁？为什么会有她的衣料？',
+      '他仔细检查了尸体，发现死者的胸口有一个掌印。',
+      '那个掌印，他认识。',
+      '"玄冥掌……"他喃喃道。',
+      '这是那个宗门独有的功法。',
+      '难道说，那个宗门的人，真的来到了朝天宗？',
+      '他正准备离开，忽然听到门外传来一阵脚步声。',
+      '门被推开，一个身影走了进来。',
+      '井九抬头，看到那张脸，整个人如遭雷击。',
+      '"好久不见，井九。"那人微笑着说。',
+      '是她。',
+      '那个他以为再也见不到的人。',
+      '"你……"井九张了张嘴，却发现自己的声音在颤抖。',
+      '"我回来了。"她走上前，轻轻抱住他，"对不起，让你等了这么久。"',
+      '井九的身体僵硬了片刻，然后缓缓抬起手，抱住了她。',
+      '这一次，他不会再放手了。',
+    ],
+  },
+];
+
+// Chapter comment data (本章说)
+const CHAPTER_COMMENTS = {
+  0: [
+    { user: '书虫123', avatar: '虫', text: '开篇就很有意境，大雪纷飞的场景描写得太好了！', time: '2分钟前', likes: 128 },
+    { user: '修仙爱好者', avatar: '仙', text: '井九这个角色很有深度，看得出是个有故事的人', time: '5分钟前', likes: 96 },
+    { user: '夜雨声烦', avatar: '雨', text: '新书打卡！期待后续发展', time: '10分钟前', likes: 72 },
+    { user: '青山依旧', avatar: '山', text: '这段描写让我想起了很多年前看仙侠小说的感觉', time: '15分钟前', likes: 54 },
+    { user: '梦里不知身是客', avatar: '梦', text: '猫腻大大的文笔还是一如既往的好', time: '20分钟前', likes: 43 },
+  ],
+  1: [
+    { user: '天涯孤客', avatar: '客', text: '朝天宗的设定很有感觉，三千年的历史感', time: '3分钟前', likes: 89 },
+    { user: '剑气纵横', avatar: '剑', text: '新地图开启！期待主角在这里大展身手', time: '8分钟前', likes: 76 },
+  ],
+  2: [
+    { user: '老书虫', avatar: '虫', text: '赵大宝这个角色太搞笑了，气氛担当', time: '1分钟前', likes: 156 },
+    { user: '江湖夜雨', avatar: '灯', text: '故人重逢的桥段虽然老套，但写得很有感觉', time: '6分钟前', likes: 88 },
+  ],
+  3: [
+    { user: '剑心通明', avatar: '剑', text: '试炼这段写得紧张刺激，很有代入感', time: '4分钟前', likes: 112 },
+    { user: '修行者', avatar: '修', text: '一剑斩杀黑狼，干净利落！', time: '9分钟前', likes: 94 },
+  ],
+  4: [
+    { user: '阵法学徒', avatar: '阵', text: '迷阵这个设定很有意思，万物皆有规律', time: '2分钟前', likes: 67 },
+    { user: '青云门下', avatar: '云', text: '宗主亲自出马？这排面也太大了', time: '7分钟前', likes: 145 },
+  ],
+  5: [
+    { user: '悟道者', avatar: '道', text: '"修行先修心"这句话说得太好了', time: '3分钟前', likes: 203 },
+    { user: '心若自在', avatar: '心', text: '这段对话很有禅意，值得反复品味', time: '11分钟前', likes: 167 },
+  ],
+  6: [
+    { user: '勤奋修炼', avatar: '勤', text: '井九这么拼命，背后肯定有原因', time: '5分钟前', likes: 78 },
+    { user: '金丹大道', avatar: '丹', text: '突破金丹才是真正的开始，加油！', time: '12分钟前', likes: 56 },
+  ],
+  7: [
+    { user: '侦探迷', avatar: '探', text: '这块碎布的出现让剧情变得扑朔迷离了', time: '2分钟前', likes: 134 },
+    { user: '悬疑爱好者', avatar: '疑', text: '感觉要开始主线剧情了，期待！', time: '8分钟前', likes: 92 },
+  ],
+  8: [
+    { user: '感性读者', avatar: '泪', text: '这段往事看哭了，井九也是个痴情人', time: '4分钟前', likes: 267 },
+    { user: '星空下的梦想', avatar: '星', text: '屋顶看星星这段画面感太强了', time: '10分钟前', likes: 143 },
+  ],
+  9: [
+    { user: '团圆党', avatar: '喜', text: '终于重逢了！这一章看得我热泪盈眶', time: '1分钟前', likes: 345 },
+    { user: 'CP粉', avatar: '心', text: '这一抱，等了十章！太甜了', time: '6分钟前', likes: 289 },
+    { user: '剧情党', avatar: '剧', text: '玄冥掌这条线应该是个伏笔，后面肯定有大戏', time: '12分钟前', likes: 178 },
+  ],
+};
+
+// ============================================================
+// STATE
+// ============================================================
+
+let state = {
+  currentChapter: 0,
+  fontSize: 18,
+  lineHeight: 2.0,
+  fontFamily: 'default',
+  theme: 'default',
+  isAutoScrolling: false,
+  autoScrollTimer: null,
+  currentBook: 0,
+  readingProgress: {}, // { chapterIndex: scrollTop }
+};
+
+// ============================================================
+// DOM REFS
+// ============================================================
+
+const $ = id => document.getElementById(id);
+const readerMain = $('readerMain');
+const novelContent = $('novelContent');
+const chapterTitle = $('chapterTitle');
+const chapterEnd = $('chapterEnd');
+const progressFill = $('progressFill');
+const chapterProgress = $('chapterProgress');
+const tocBody = $('tocBody');
+const toast = $('toast');
+const commentBubbleWrap = $('commentBubbleWrap');
+const commentModal = $('commentModal');
+const commentModalBody = $('commentModalBody');
+const commentCount = $('commentCount');
+const commentInput = $('commentInput');
+const loadingScreen = $('loadingScreen');
+const bookshelfGrid = $('bookshelfGrid');
+const fontSizeDisplay = $('fontSizeDisplay');
+const fontSizeSlider = $('fontSizeSlider');
+
+// ============================================================
+// INIT
+// ============================================================
+
+function init() {
+  loadSettings();
+  renderBookshelf();
+  renderChapter(state.currentChapter);
+  renderTOC();
+  updateProgress();
+  updateThemeUI();
+  updateFontUI();
+  updateLineHeightUI();
+  updateFontFamilyUI();
+
+  // Hide loading screen
+  setTimeout(() => {
+    loadingScreen.classList.add('hidden');
+  }, 600);
+
+  // Scroll progress tracking
+  readerMain.addEventListener('scroll', () => {
+    updateProgress();
+    // Save reading position
+    state.readingProgress[state.currentChapter] = readerMain.scrollTop;
+  });
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') prevChapter();
+    if (e.key === 'ArrowRight') nextChapter();
+    if (e.key === 'Escape') closeAllPanels();
+  });
+}
+
+// ============================================================
+// CHAPTER RENDERING
+// ============================================================
+
+function renderChapter(index) {
+  const chapter = CHAPTERS[index];
+  if (!chapter) return;
+
+  state.currentChapter = index;
+  chapterTitle.textContent = chapter.title;
+  $('headerBookTitle').textContent = BOOKS[state.currentBook].name;
+
+  // Build content with paragraphs
+  let html = '';
+  chapter.content.forEach((text, i) => {
+    const noteCount = getCommentCountForParagraph(index, i);
+    const hasNotes = noteCount > 0;
+    html += `<div class="paragraph ${hasNotes ? 'has-notes' : ''}" 
+                   data-paragraph="${i}" 
+                   data-note-count="${noteCount}"
+                   onclick="openParagraphComments(${i})">
+               <span class="comment-trigger"></span>
+               ${text}
+             </div>`;
+  });
+  novelContent.innerHTML = html;
+
+  // Show chapter end
+  chapterEnd.style.display = 'block';
+
+  // Restore scroll position
+  setTimeout(() => {
+    if (state.readingProgress[index]) {
+      readerMain.scrollTop = state.readingProgress[index];
+    } else {
+      readerMain.scrollTop = 0;
+    }
+  }, 50);
+
+  updateProgress();
+  renderTOC();
+  closeAllPanels();
+
+  // Simulate floating comment bubbles
+  simulateCommentBubbles(index);
+}
+
+function getCommentCountForParagraph(chapterIdx, paragraphIdx) {
+  const comments = CHAPTER_COMMENTS[chapterIdx];
+  if (!comments) return 0;
+  // Distribute comments across paragraphs
+  const perParagraph = Math.ceil(comments.length / CHAPTERS[chapterIdx].content.length);
+  const start = paragraphIdx * perParagraph;
+  const end = start + perParagraph;
+  const count = comments.slice(start, end).length;
+  return count > 0 ? count : 0;
+}
+
+function getCommentsForParagraph(chapterIdx, paragraphIdx) {
+  const comments = CHAPTER_COMMENTS[chapterIdx];
+  if (!comments) return [];
+  const perParagraph = Math.ceil(comments.length / CHAPTERS[chapterIdx].content.length);
+  const start = paragraphIdx * perParagraph;
+  const end = start + perParagraph;
+  return comments.slice(start, end);
+}
+
+// ============================================================
+// COMMENT BUBBLES (本章说浮窗)
+// ============================================================
+
+function simulateCommentBubbles(chapterIdx) {
+  const comments = CHAPTER_COMMENTS[chapterIdx];
+  if (!comments) return;
+
+  // Clear existing
+  commentBubbleWrap.innerHTML = '';
+
+  // Show a few random comments as floating bubbles
+  const sample = comments.slice(0, 3);
+  sample.forEach((c, i) => {
+    setTimeout(() => {
+      const bubble = document.createElement('div');
+      bubble.className = 'comment-bubble-item';
+      bubble.innerHTML = `<div class="cb-user">${c.avatar} ${c.user}</div>
+                          <div class="cb-text">${c.text}</div>`;
+      commentBubbleWrap.appendChild(bubble);
+      setTimeout(() => bubble.remove(), 4000);
+    }, i * 2000 + 1000);
+  });
+}
+
+// ============================================================
+// COMMENT MODAL (本章说弹窗)
+// ============================================================
+
+let currentParagraphComments = [];
+
+function openParagraphComments(paragraphIdx) {
+  const comments = getCommentsForParagraph(state.currentChapter, paragraphIdx);
+  currentParagraphComments = comments;
+  renderCommentModal(comments);
+  commentModal.classList.add('active');
+}
+
+function toggleComments() {
+  // Show all comments for current chapter
+  const allComments = CHAPTER_COMMENTS[state.currentChapter] || [];
+  currentParagraphComments = allComments;
+  renderCommentModal(allComments);
+  commentModal.classList.add('active');
+}
+
+function renderCommentModal(comments) {
+  commentModalBody.innerHTML = '';
+  commentCount.textContent = `(${comments.length}条)`;
+
+  if (comments.length === 0) {
+    commentModalBody.innerHTML = `
+      <div style="text-align:center;padding:40px 0;color:var(--text-secondary);">
+        <div style="font-size:40px;margin-bottom:12px;">💬</div>
+        <p>暂无评论，来说点什么吧~</p>
+      </div>`;
+    return;
+  }
+
+  comments.forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'comment-item';
+    div.innerHTML = `
+      <div class="comment-user">
+        <div class="comment-avatar">${c.avatar}</div>
+        <span class="comment-name">${c.user}</span>
+        <span class="comment-time">${c.time}</span>
+      </div>
+      <div class="comment-text">${c.text}</div>
+      <div class="comment-likes">👍 ${c.likes}</div>`;
+    commentModalBody.appendChild(div);
+  });
+}
+
+function closeCommentModal() {
+  commentModal.classList.remove('active');
+}
+
+function submitComment() {
+  const text = commentInput.value.trim();
+  if (!text) {
+    showToast('请输入评论内容');
+    return;
+  }
+  // Add to current comments
+  const newComment = {
+    user: '当前读者',
+    avatar: '读',
+    text: text,
+    time: '刚刚',
+    likes: 0,
+  };
+  currentParagraphComments.unshift(newComment);
+  renderCommentModal(currentParagraphComments);
+  commentInput.value = '';
+  showToast('评论发表成功！');
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+
+function prevChapter() {
+  if (state.currentChapter > 0) {
+    stopAutoScroll();
+    renderChapter(state.currentChapter - 1);
+  } else {
+    showToast('已经是第一章了');
+  }
+}
+
+function nextChapter() {
+  if (state.currentChapter < CHAPTERS.length - 1) {
+    stopAutoScroll();
+    renderChapter(state.currentChapter + 1);
+  } else {
+    showToast('已经是最新一章了');
+  }
+}
+
+// ============================================================
+// PROGRESS
+// ============================================================
+
+function updateProgress() {
+  const scrollTop = readerMain.scrollTop;
+  const scrollHeight = readerMain.scrollHeight - readerMain.clientHeight;
+  const percent = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+  progressFill.style.width = Math.min(percent, 100) + '%';
+  chapterProgress.textContent = `${state.currentChapter + 1}/${CHAPTERS.length}`;
+}
+
+function seekProgress(e) {
+  const rect = e.currentTarget.getBoundingClientRect();
+  const percent = (e.clientX - rect.left) / rect.width;
+  const scrollHeight = readerMain.scrollHeight - readerMain.clientHeight;
+  readerMain.scrollTop = scrollHeight * percent;
+}
+
+// ============================================================
+// TOC (目录)
+// ============================================================
+
+function renderTOC() {
+  tocBody.innerHTML = '';
+  CHAPTERS.forEach((ch, i) => {
+    const div = document.createElement('div');
+    div.className = `toc-item ${i === state.currentChapter ? 'active' : ''}`;
+    div.innerHTML = `
+      <span class="toc-num">${String(i + 1).padStart(2, '0')}</span>
+      <span class="toc-name">${ch.title}</span>
+      ${i < state.currentChapter ? '<span class="toc-check">✓</span>' : ''}
+      ${i === state.currentChapter ? '<span class="toc-status">阅读中</span>' : ''}`;
+    div.onclick = () => {
+      stopAutoScroll();
+      renderChapter(i);
+    };
+    tocBody.appendChild(div);
+  });
+}
+
+// ============================================================
+// BOOKSHELF (书架)
+// ============================================================
+
+function renderBookshelf() {
+  bookshelfGrid.innerHTML = '';
+  BOOKS.forEach((book, i) => {
+    const div = document.createElement('div');
+    div.className = 'bookshelf-item';
+    div.innerHTML = `
+      <div class="bookshelf-cover ${book.cover}">${book.emoji}</div>
+      <div class="bookshelf-name">${book.name}</div>
+      <div class="bookshelf-author">${book.author}</div>`;
+    div.onclick = () => {
+      state.currentBook = i;
+      $('headerBookTitle').textContent = book.name;
+      state.currentChapter = 0;
+      state.readingProgress = {};
+      renderChapter(0);
+      closeAllPanels();
+      showToast(`切换到《${book.name}》`);
+    };
+    bookshelfGrid.appendChild(div);
+  });
+}
+
+// ============================================================
+// SETTINGS (设置)
+// ============================================================
+
+// Theme
+function setTheme(theme) {
+  state.theme = theme;
+  document.body.setAttribute('data-theme', theme);
+  localStorage.setItem('reader-theme', theme);
+  updateThemeUI();
+  showToast(`已切换到${getThemeName(theme)}主题`);
+}
+
+function getThemeName(theme) {
+  const names = { default: '默认', night: '夜间', eye: '护眼', parchment: '羊皮纸' };
+  return names[theme] || '默认';
+}
+
+function updateThemeUI() {
+  document.querySelectorAll('.theme-option').forEach(el => {
+    el.classList.toggle('active', el.dataset.theme === state.theme);
+  });
+}
+
+// Font Size
+function changeFontSize(delta) {
+  const newSize = Math.max(12, Math.min(32, state.fontSize + delta));
+  setFontSize(newSize);
+}
+
+function setFontSize(size) {
+  state.fontSize = parseInt(size);
+  novelContent.style.fontSize = state.fontSize + 'px';
+  fontSizeDisplay.textContent = state.fontSize + 'px';
+  fontSizeSlider.value = state.fontSize;
+  localStorage.setItem('reader-fontSize', state.fontSize);
+}
+
+function updateFontUI() {
+  setFontSize(state.fontSize);
+}
+
+// Line Height
+function setLineHeight(lh) {
+  state.lineHeight = lh;
+  novelContent.style.lineHeight = lh;
+  localStorage.setItem('reader-lineHeight', lh);
+  updateLineHeightUI();
+}
+
+function updateLineHeightUI() {
+  document.querySelectorAll('.lh-btn').forEach(el => {
+    el.classList.toggle('active', parseFloat(el.dataset.lh) === state.lineHeight);
+  });
+}
+
+// Font Family
+function setFontFamily(ff) {
+  state.fontFamily = ff;
+  const map = {
+    default: '"PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif',
+    song: '"SimSun", "STSong", "Noto Serif SC", serif',
+    kai: '"KaiTi", "STKaiti", "Noto Serif SC", serif',
+    hei: '"SimHei", "Microsoft YaHei", "Noto Sans SC", sans-serif',
+  };
+  novelContent.style.fontFamily = map[ff] || map.default;
+  localStorage.setItem('reader-fontFamily', ff);
+  updateFontFamilyUI();
+}
+
+function updateFontFamilyUI() {
+  document.querySelectorAll('.ff-btn').forEach(el => {
+    el.classList.toggle('active', el.dataset.ff === state.fontFamily);
+  });
+}
+
+// ============================================================
+// AUTO SCROLL (自动滚动)
+// ============================================================
+
+function toggleAutoScroll() {
+  if (state.isAutoScrolling) {
+    stopAutoScroll();
+  } else {
+    startAutoScroll();
+  }
+}
+
+function startAutoScroll() {
+  state.isAutoScrolling = true;
+  $('autoScrollBtn').style.color = 'var(--accent)';
+  showToast('已开启自动滚动');
+
+  state.autoScrollTimer = setInterval(() => {
+    readerMain.scrollBy(0, 1);
+    // Check if reached bottom
+    if (readerMain.scrollTop + readerMain.clientHeight >= readerMain.scrollHeight - 10) {
+      stopAutoScroll();
+      showToast('已到达章节底部');
+    }
+  }, 30);
+}
+
+function stopAutoScroll() {
+  state.isAutoScrolling = false;
+  if (state.autoScrollTimer) {
+    clearInterval(state.autoScrollTimer);
+    state.autoScrollTimer = null;
+  }
+  $('autoScrollBtn').style.color = '';
+}
+
+// ============================================================
+// PANEL TOGGLES
+// ============================================================
+
+function toggleTOC() {
+  const panel = $('tocPanel');
+  const overlay = $('sideOverlay');
+  const bookshelf = $('bookshelfPanel');
+  bookshelf.classList.remove('active');
+  panel.classList.toggle('active');
+  overlay.classList.toggle('active', panel.classList.contains('active'));
+}
+
+function toggleSettings() {
+  const panel = $('settingsPanel');
+  const overlay = $('sideOverlay');
+  panel.classList.toggle('active');
+  overlay.classList.toggle('active', panel.classList.contains('active'));
+}
+
+function toggleBookshelf() {
+  const panel = $('bookshelfPanel');
+  const overlay = $('sideOverlay');
+  const toc = $('tocPanel');
+  toc.classList.remove('active');
+  panel.classList.toggle('active');
+  overlay.classList.toggle('active', panel.classList.contains('active'));
+}
+
+function closeAllPanels() {
+  document.querySelectorAll('.side-panel').forEach(p => p.classList.remove('active'));
+  $('sideOverlay').classList.remove('active');
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+
+let toastTimer = null;
+
+function showToast(msg) {
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+// ============================================================
+// SETTINGS PERSISTENCE
+// ============================================================
+
+function saveSettings() {
+  localStorage.setItem('reader-theme', state.theme);
+  localStorage.setItem('reader-fontSize', state.fontSize);
+  localStorage.setItem('reader-lineHeight', state.lineHeight);
+  localStorage.setItem('reader-fontFamily', state.fontFamily);
+}
+
+function loadSettings() {
+  try {
+    const theme = localStorage.getItem('reader-theme');
+    if (theme) state.theme = theme;
+    const fontSize = localStorage.getItem('reader-fontSize');
+    if (fontSize) state.fontSize = parseInt(fontSize);
+    const lineHeight = localStorage.getItem('reader-lineHeight');
+    if (lineHeight) state.lineHeight = parseFloat(lineHeight);
+    const fontFamily = localStorage.getItem('reader-fontFamily');
+    if (fontFamily) state.fontFamily = fontFamily;
+  } catch (e) { /* ignore */ }
+
+  // Apply theme on load
+  document.body.setAttribute('data-theme', state.theme);
+}
+
+// ============================================================
+// CLICK OUTSIDE TO CLOSE MODAL
+// ============================================================
+
+commentModal.addEventListener('click', (e) => {
+  if (e.target === commentModal) closeCommentModal();
+});
+
+// ============================================================
+// INIT ON LOAD
+// ============================================================
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>起点书坊</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-theme="default">
+<div id="page-bookshelf" class="page active">
+  <header class="app-header">
+    <h1>起点书坊</h1>
+    <button class="icon-btn" onclick="importFile()">+</button>
+  </header>
+  <main class="bookshelf-main">
+    <div id="bookshelf-grid" class="bookshelf-grid"></div>
+    <div id="empty-state" class="empty-state">
+      <div class="empty-icon">📚</div>
+      <p>书架空空如也</p>
+      <p class="empty-hint">点击右上角 + 导入 TXT / EPUB 小说</p>
+      <button class="import-btn" onclick="importFile()">导入小说</button>
+    </div>
+  </main>
+  <input type="file" id="file-input" accept=".txt,.epub,text/plain,application/epub+zip" style="display:none">
+</div>
+<div id="page-reader" class="page">
+  <header class="reader-header" id="reader-header">
+    <button class="icon-btn" onclick="backToBookshelf()">‹</button>
+    <span class="reader-title" id="reader-title">书名</span>
+    <button class="icon-btn" onclick="toggleNightMode()" id="night-btn">🌙</button>
+  </header>
+  <main class="reader-main" id="reader-main">
+    <div class="reader-inner" id="reader-inner">
+      <h2 class="chapter-title" id="chapter-title">章节标题</h2>
+      <div class="novel-content" id="novel-content"></div>
+      <div class="chapter-end" id="chapter-end">
+        <div class="end-divider">—— 本章完 ——</div>
+        <div class="end-actions">
+          <button class="end-btn" onclick="prevChapter()">上一章</button>
+          <button class="end-btn primary" onclick="nextChapter()">下一章</button>
+        </div>
+      </div>
+    </div>
+  </main>
+  <footer class="reader-footer" id="reader-footer">
+    <div class="progress-bar" id="progress-bar">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+    <div class="footer-actions">
+      <button class="footer-btn" onclick="prevChapter()"><span class="footer-icon">◀</span><span class="footer-label">上一章</span></button>
+      <button class="footer-btn" onclick="toggleTOC()"><span class="footer-icon">☰</span><span class="footer-label">目录</span></button>
+      <button class="footer-btn" onclick="toggleComments()"><span class="footer-icon">💬</span><span class="footer-label">本章说</span></button>
+      <button class="footer-btn" onclick="toggleSettings()"><span class="footer-icon">⚙</span><span class="footer-label">设置</span></button>
+      <button class="footer-btn" onclick="nextChapter()"><span class="footer-icon">▶</span><span class="footer-label">下一章</span></button>
+    </div>
+  </footer>
+</div>
+<div class="overlay" id="overlay" onclick="closeAllPanels()"></div>
+<div class="side-panel left" id="toc-panel">
+  <div class="panel-header"><h3>目录</h3><button class="icon-btn" onclick="closeAllPanels()">✕</button></div>
+  <div class="panel-body" id="toc-body"></div>
+</div>
+<div class="side-panel right" id="settings-panel">
+  <div class="panel-header"><h3>阅读设置</h3><button class="icon-btn" onclick="closeAllPanels()">✕</button></div>
+  <div class="panel-body">
+    <div class="settings-section">
+      <div class="settings-label">阅读主题</div>
+      <div class="theme-grid">
+        <div class="theme-option active" data-theme="default" onclick="setTheme('default')"><div class="theme-preview" style="background:#faf8f5;color:#333">A</div><span>默认</span></div>
+        <div class="theme-option" data-theme="night" onclick="setTheme('night')"><div class="theme-preview" style="background:#1a1a1e;color:#c8c8c8">A</div><span>夜间</span></div>
+        <div class="theme-option" data-theme="eye" onclick="setTheme('eye')"><div class="theme-preview" style="background:#c7edcc;color:#2d4a2d">A</div><span>护眼</span></div>
+        <div class="theme-option" data-theme="parchment" onclick="setTheme('parchment')"><div class="theme-preview" style="background:#e8dcc8;color:#4a3520">A</div><span>羊皮纸</span></div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-label">字号 <span id="font-size-val">18</span>px</div>
+      <div class="slider-row">
+        <button class="step-btn" onclick="changeFontSize(-1)">A-</button>
+        <input type="range" class="slider" id="font-size-slider" min="14" max="32" value="18" oninput="setFontSize(this.value)">
+        <button class="step-btn" onclick="changeFontSize(1)">A+</button>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-label">行距 <span id="line-height-val">2.0</span></div>
+      <div class="slider-row">
+        <button class="step-btn" onclick="changeLineHeight(-0.2)">−</button>
+        <input type="range" class="slider" id="line-height-slider" min="1.4" max="3.0" step="0.2" value="2.0" oninput="setLineHeight(this.value)">
+        <button class="step-btn" onclick="changeLineHeight(0.2)">+</button>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-label">字体</div>
+      <div class="font-options">
+        <button class="font-btn active" data-font="sans" onclick="setFontFamily('sans')">黑体</button>
+        <button class="font-btn" data-font="serif" onclick="setFontFamily('serif')">宋体</button>
+        <button class="font-btn" data-font="kai" onclick="setFontFamily('kai')">楷体</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="comment-modal" id="comment-modal">
+  <div class="comment-modal-content">
+    <div class="comment-modal-header"><h3>💬 本章说</h3><span class="comment-count" id="comment-count">0条</span><button class="icon-btn" onclick="closeCommentModal()">✕</button></div>
+    <div class="comment-modal-body" id="comment-modal-body"></div>
+    <div class="comment-input-row">
+      <input type="text" id="comment-input" placeholder="写下你的想法..." maxlength="500">
+      <button onclick="submitComment()">发表</button>
+    </div>
+  </div>
+</div>
+<div class="context-menu" id="context-menu">
+  <button onclick="contextAction('comment')">💬 添加段评</button>
+  <button onclick="contextAction('bookmark')">🔖 添加书签</button>
+  <button onclick="contextAction('copy')">📋 复制文字</button>
+</div>
+<div class="toast" id="toast"></div>
+<div class="loading-overlay" id="loading-overlay">
+  <div class="loading-spinner"></div>
+  <p id="loading-text">正在导入...</p>
+</div>
+<script src="jszip.min.js"></script>
+<script src="db.js"></script>
+<script src="txt-parser.js"></script>
+<script src="epub-parser.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

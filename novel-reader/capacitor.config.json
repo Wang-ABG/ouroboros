@@ -1,0 +1,11 @@
+{
+  "appId": "com.novelreader.app",
+  "appName": "起点书坊",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}
